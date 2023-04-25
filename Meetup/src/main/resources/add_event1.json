@@ -1,0 +1,18 @@
+{
+  "capacity": 5,
+  "category": {
+    "id": 1,
+    "name": "Sports"
+  },
+  "creator": {
+    "displayName": "test",
+    "email": "sachiko@gmail.com",
+    "id": 1,
+    "password": "1234",
+    "username": "sachiko"
+  },
+  "description": "gupps",
+  "eventDate": "2022-12-10T15:04:00",
+  "location": "wws15",
+  "title": "chapps & chiks"
+}

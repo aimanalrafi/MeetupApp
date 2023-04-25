@@ -1,0 +1,297 @@
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a (click)="getEventsByHttp()" class="navbar-brand" style="color:white;">Meetup</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarColor02">
+    <ul class="navbar-nav mr-auto">
+      <li>
+        <a class="nav-link active" >Hi, {{userLoggedIn.username}}<span class="sr-only">(current)</span></a>
+      </li>
+      <li>
+<!--        <a class="nav-link" (click)="onOpenModal(null, 'add')">Add Employee <span class="sr-only">(current)</span></a>-->
+        <a class="nav-link" (click)="onOpenModal('add')">Add Event <span class="sr-only">(current)</span></a>
+      </li>
+      <li>
+        <a class="nav-link" (click)="onShowCreatedEvents()">Created Events <span class="sr-only">(current)</span></a>
+      </li>
+      <li>
+        <a class="nav-link" (click)="onShowJoinedEvents()">Joined Events <span class="sr-only">(current)</span></a>
+      </li>
+      <li>
+        <a class="nav-link" (click)="onOpenModal('logout')">Logout <span class="sr-only">(current)</span></a>
+      </li>
+    </ul>
+    <form class="form-inline my-2 my-lg-0">
+<!--      <input type="search" (ngModelChange)="searchEmployees(key.value)" #key="ngModel" ngModel-->
+<!--             name="key" id="searchName" class="form-control mr-sm-2" placeholder="Search employees..." required>-->
+    </form>
+  </div>
+</nav>
+
+<div class="container p-0" id="main-container">
+  <br>
+<!--  <a href="#" class="btn btn-primary float-right mt-n1"><i class="fas fa-plus"></i> New Meetup</a>-->
+  <h1 class="h3 mb-3">Ready for a Meetup?</h1>
+    <div *ngFor="let category of categories" >
+        <button (click)="onFilterEventByCategory(category?.id)">{{category.name}}</button>
+    </div>
+
+  <button (click)="getEventsByHttp()">Reset filter</button>
+  <br>
+  <br>
+  <div class="row">
+    <div *ngFor="let event of events" class="col-12 col-md-6 col-lg-3">
+      <div class="card">
+
+        <div class="card-header px-4 pt-4">
+          <div class="card-actions float-right">
+            <div class="dropdown show">
+              <a data-toggle="dropdown" data-display="static">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-horizontal align-middle"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              </a>
+
+              <div class="dropdown-menu dropdown-menu-right">
+                <a [hidden]="event.creator.id != userLoggedIn.id" (click)="onOpenModal('edit', event)" class="dropdown-item" >Edit</a>
+                <a [hidden]="event.creator.id != userLoggedIn.id" (click)="onOpenModal('delete', event)" class="dropdown-item" >Delete</a>
+                <a class="dropdown-item">Share</a>
+              </div>
+            </div>
+          </div>
+          <h5 class="card-title mb-0">{{event?.title}}</h5>
+          <div class="badge bg-success my-2">{{event.category.name}}</div>
+        </div>
+        <div class="card-body px-4 pt-2">
+
+          <p>{{event?.description}}</p>
+          <p>{{event?.eventDate}}</p>
+          <p>{{event?.location}}</p>
+          <p>By {{event.creator.username}}</p>
+          <p>Capacity: {{event.participants.length}}/{{event.capacity}}</p>
+
+
+<!--          <img src="https://bootdey.com/img/Content/avatar/avatar3.png" class="rounded-circle mr-1" alt="Avatar" width="28" height="28">-->
+<!--          <img src="https://bootdey.com/img/Content/avatar/avatar2.png" class="rounded-circle mr-1" alt="Avatar" width="28" height="28">-->
+<!--          <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="rounded-circle mr-1" alt="Avatar" width="28" height="28">-->
+
+          <div>
+            <a (click)="onOpenModal('join', event)" class="btn btn-primary float-right mt-n1">Join</a>
+          </div>
+
+
+
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item px-4 pb-4">
+            <p class="mb-2 font-weight-bold">Capacity <span class="float-right">{{(event.participants.length / event.capacity) * 100 | number: '1.0-0'}}%</span></p>
+            <div class="progress progress-sm">
+              <div #progressBar class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" [style.width.%]="(event.participants.length / event.capacity) * 100">
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Add Event-->
+<div class="modal fade" id="addEventModal" tabindex="-1" role="dialog" aria-labelledby="addEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addEventModalLabel">Create Event</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="addEventForm" novalidate (ngSubmit)="onAddEvent()">
+          <div class="form-group">
+            <label for="addTitle">Title</label>
+            <input type="text" formControlName="title" class="form-control" id="addTitle" placeholder="Title" required>
+          </div>
+          <div class="form-group">
+            <label for="addDescription">Description</label>
+
+            <input type="text" formControlName="description" class="form-control" id="addDescription" placeholder="Description" required>
+          </div>
+        <div class="form-group">
+          <label for="addCategory">Category</label>
+          <select  formControlName="categoryId" class="form-control" id="addCategory">
+<!--            <select  formControlName="categoryId" class="form-control" id="addCategory">-->
+<!--            <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>-->
+            <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>
+
+          </select>
+        </div>
+<!--          <div [hidden]="true" class="form-group">-->
+<!--            <label for="addCreator">Creator</label>-->
+<!--            <input formControlName="creatorId" class="form-control" id="addCreator" [value]="userLoggedIn.id" required>-->
+
+<!--                        <select formControlName="creatorId" class="form-control" id="addCreator" required>-->
+<!--&lt;!&ndash;              <select formControlName="creatorId" class="form-control" id="addCreator" required>&ndash;&gt;-->
+<!--&lt;!&ndash;              <option *ngFor="let user of users" [value]="user.id">{{user.username}}</option>&ndash;&gt;-->
+<!--              <option *ngFor="let user of users" [value]="user.id">{{user.username}}</option>-->
+
+<!--            </select>-->
+<!--          </div>-->
+          <div class="form-group">
+            <label for="addCapacity">Capacity</label>
+            <input type="number" formControlName="capacity" class="form-control" id="addCapacity" placeholder="Capacity" required>
+
+          </div>
+          <div class="form-group">
+            <label for="addLocation">Location</label>
+            <input type="text" formControlName="location" class="form-control" id="addLocation" placeholder="location" required>
+
+          </div>
+          <div class="form-group">
+            <label for="addEventDate">Pick a date!</label>
+            <input type="datetime-local" formControlName="eventDate" class="form-control" id="addEventDate">
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="add-event-form" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button [disabled]="addEventForm.invalid" type="submit" class="btn btn-primary">Create!</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Edit Event-->
+<div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editEventModalLabel">Edit Event</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editEventForm" novalidate (ngSubmit)="onEditEvent(editEventForm.value)">
+            <input type="hidden" formControlName="id" ngModel="{{editEvent?.id}}"  class="form-control" id="eventId" placeholder="Title" required>
+          <div class="form-group">
+            <label for="editTitle">Title</label>
+            <input type="text" formControlName="title" ngModel="{{editEvent?.title}}" class="form-control" id="editTitle" placeholder="Title" required>
+          </div>
+          <div class="form-group">
+            <label for="editDescription">Description</label>
+            <input type="text" formControlName="description" ngModel="{{editEvent?.description}}"  class="form-control" id="editDescription" placeholder="Description" required>
+          </div>
+          <div class="form-group">
+            <label for="editCategory">Category</label>
+            <select  formControlName="categoryId" ngModel="{{editEvent?.category}}" class="form-control" id="editCategory">
+              <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>
+            </select>
+          </div>
+<!--          <div class="form-group">-->
+<!--            <label for="editCreator">Creator</label>-->
+<!--            <select formControlName="creatorId" ngModel="{{editEvent?.creator}}" class="form-control" id="editCreator" required>-->
+<!--              <option *ngFor="let user of users" [value]="user.id">{{user.username}}</option>-->
+<!--            </select>-->
+<!--          </div>-->
+          <div class="form-group">
+            <label for="editCapacity">Capacity</label>
+            <input type="number" formControlName="capacity" ngModel="{{editEvent?.capacity}}" class="form-control" id="editCapacity" placeholder="Capacity" required>
+
+          </div>
+          <div class="form-group">
+            <label for="editLocation">Location</label>
+            <input type="text" formControlName="location" ngModel="{{editEvent?.location}}" class="form-control" id="editLocation" placeholder="location" required>
+
+          </div>
+          <div class="form-group">
+            <label for="editEventDate">Pick a date!</label>
+            <input type="datetime-local" formControlName="eventDate" ngModel="{{editEvent?.eventDate}}" class="form-control" id="editEventDate">
+          </div>
+<!--          <div class="form-group">-->
+<!--            <label for="editCategory">Participants</label>-->
+<!--            <select  formControlName="participants" ngModel="{{editEvent?.participants}}" class="form-control" id="editParticipants">-->
+<!--              <option *ngFor="let participant of editEvent?.participants" [value]="participant.id">{{participant.username}}</option>-->
+<!--            </select>-->
+<!--          </div>-->
+          <div class="modal-footer">
+            <button type="button" id="edit-event-form" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button [disabled]="editEventForm.invalid" type="submit" class="btn btn-primary" >Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Delete Event-->
+<div class="modal fade" id="deleteEventModal" tabindex="-1" role="dialog" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteEventModalLabel">Delete Event</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Confirm event to delete:-</p>
+        <ul>
+          <li>Title: {{deleteEvent?.title}}</li>
+          <li>Title: {{deleteEvent?.eventDate}}</li>
+          <li>Title: {{deleteEvent?.location}}</li>
+        </ul>        <div class="modal-footer">
+          <button type="button" id="delete-event-button-no" class="btn btn-secondary" data-dismiss="modal">No</button>
+          <button (click)="onDeleteEvent(deleteEvent!)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Join Event-->
+<div class="modal fade" id="joinEventModal" tabindex="-1" role="dialog" aria-labelledby="joinEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="joinEventModalLabel">Do you want to join?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Confirm event details:-</p>
+        <ul>
+          <li>Title: {{joinEvent?.title}}</li>
+          <li>Title: {{joinEvent?.eventDate}}</li>
+          <li>Title: {{joinEvent?.location}}</li>
+        </ul>
+        <div class="modal-footer">
+          <button type="button" id="join-event-button-no" class="btn btn-secondary" data-dismiss="modal">No</button>
+          <button (click)="onJoinEvent(joinEvent!)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="logoutModalLabel">Logout</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to log out?</p>
+        <div class="modal-footer">
+        <button type="button" id="logout-button-no" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button type="submit" class="btn btn-danger" data-dismiss="modal" [routerLink]="['/login']">Yes</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+

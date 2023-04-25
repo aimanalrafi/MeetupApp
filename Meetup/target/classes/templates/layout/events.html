@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Event</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="content">
+    <div class="row">
+        <div class="col-md-6">
+            <h1 style="color: darkblue">Events List </h1>
+        </div>
+        <div class="col-md-6">
+        </div>
+    </div>
+    <table class="table table-hover">
+        <thead>
+        <tr class="table-active">
+            <th scope="col">id</th>
+            <th scope="col">title</th>
+            <th scope="col">description</th>
+            <th scope="col">category</th>
+            <th scope="col">capacity</th>
+            <th scope="col">startRegistrationDate</th>
+            <th scope="col">endRegistrationDate</th>
+            <th scope="col">eventDate</th>
+            <th scope="col">location</th>
+        </tr>
+        </thead>
+        <tbody>
+        <div th:each="event, iterStat:${events}">
+            <tr style="background-color: #fdfdfd">
+                <th scope="row" th:text="${event.eventId}"></th>
+                <td th:text="${event.title}"></td>
+                <td th:text="${event.description}"></td>
+                <td th:text="${event.category.name}"></td>
+                <td th:text="${event.capacity}"></td>
+                <td th:text="${event.startRegistrationDate}"></td>
+                <td th:text="${event.endRegistrationDate}"></td>
+                <td th:text="${event.eventDate}"></td>
+                <td th:text="${event.location}"></td>
+                <td><a th:href="@{/events/{id}(id=${event.eventId})}">Edit</a></td>
+            </tr>
+
+        </div>
+        </tbody>
+    </table>
+
+<!--    <div>-->
+<!--        <h3>Create New User</h3>-->
+
+<!--        <form action="" method="POST">-->
+<!--            <input type="text" placeholder="displayName" name="displayName">-->
+<!--            <input type="text" placeholder="username" name="username">-->
+<!--            <input type="text" placeholder="email" name="email">-->
+<!--            <input type="text" placeholder="password" name="password">-->
+<!--            <input type="submit" title="Add">-->
+<!--        </form>-->
+<!--    </div>-->
+
+    <div th:if="${successEvent}" class="alert alert-success" role="alert" th:text="${successEvent}"></div>
+    <div th:if="${successError}" class="alert alert-success" role="alert" th:text="${errorEvent}"></div>
+
+
+
+    <div>
+        <h3>Create New Event</h3>
+
+        <form action="" method="POST">
+            <input type="text" placeholder="title" name="title">
+            <input type="text" placeholder="description" name="description">
+            <input type="text" placeholder="capacity" name="capacity">
+            <input type="datetime-local" name="startRegistrationDate"/>
+            <input type="datetime-local" name="endRegistrationDate"/>
+            <input type="datetime-local" name="eventDate"/>
+            <input type="text" placeholder="location" name="location">
+            <input type="text" placeholder="categoryId" name="categoryId">
+            <input type="text" placeholder="creatorId" name="creatorId">
+
+<!--            <select th:field="*{categories}" id="categories" name="categoryId">-->
+<!--                <option th:each="category : ${categories}"-->
+<!--                        th:value="${category.categoryId}"-->
+<!--                        th:text="${category.categoryId}">Pick category</option>-->
+<!--            </select>-->
+<!--            <select th:field="*{users}" id="users" name="creatorId">-->
+<!--                <option th:each="user : ${users}"-->
+<!--                        th:value="${user.userId}"-->
+<!--                        th:text="${user.userId}">Pick user</option>-->
+<!--            </select>-->
+            <input type="submit" title="Add">
+        </form>
+    </div>
+</th:block>
+</body>
+</html>
